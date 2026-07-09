@@ -1,0 +1,46 @@
+# 환경변수 — API 키 절대 커밋 금지
+.env
+.env.local
+.env*.local
+!.env.example
+
+# 의존성
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js 빌드
+.next/
+out/
+build/
+dist/
+
+# Vercel
+.vercel
+
+# Supabase 로컬
+supabase/.branches
+supabase/.temp
+.supabase/
+
+# 테스트·커버리지
+coverage/
+*.lcov
+
+# 로그
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 타입스크립트
+*.tsbuildinfo
+next-env.d.ts
+
+# 에디터·OS
+.DS_Store
+.idea/
+*.swp
+
+# 백업 스냅샷 — docs/가 원본이므로 불필요
+assets/*.zip
