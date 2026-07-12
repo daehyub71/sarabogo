@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>살아보고 · 서비스 기획안 (카카오맵 심사용)</title>
+<style>
+  :root{
+    --green:#1f6f54; --green-dark:#145a42; --orange:#b5581f;
+    --ink:#1a1a17; --ink2:#4d4f49; --muted:#6b695f;
+    --bg:#ffffff; --surface:#f7f4ef; --border:#d8d2c6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:1240px; background:var(--bg); color:var(--ink);
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    padding:56px 60px; display:flex; flex-direction:column; gap:26px;
+  }
+  header{display:flex; align-items:center; gap:20px; border-bottom:3px solid var(--green); padding-bottom:20px}
+  header img{width:76px;height:76px;border-radius:18px}
+  .title{font-size:40px;font-weight:800;letter-spacing:-1px}
+  .tagline{font-size:20px;color:var(--ink2);margin-top:4px}
+  .stamp{margin-left:auto;text-align:right;font-size:14px;color:var(--muted);line-height:1.6}
+
+  h2{font-size:22px;font-weight:800;color:var(--green);margin-bottom:10px;
+     display:flex;align-items:center;gap:8px}
+  h2::before{content:"";width:6px;height:20px;background:var(--green);border-radius:3px}
+
+  .grid{display:flex;gap:26px}
+  .col-left{width:430px;display:flex;flex-direction:column;gap:22px}
+  .col-right{flex:1;display:flex;flex-direction:column;gap:14px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px}
+  .card p{font-size:17px;line-height:1.75;color:var(--ink2)}
+  .card li{font-size:17px;line-height:1.9;color:var(--ink2);margin-left:20px}
+  b{color:var(--ink)}
+
+  .screens{display:flex;gap:24px}
+  .screen{flex:1;display:flex;flex-direction:column}
+  .screen-label{font-size:15px;font-weight:700;padding:7px 12px;border-radius:8px;
+    margin-bottom:10px;display:inline-flex;align-items:center;gap:6px;align-self:flex-start}
+  .lb-real{background:#e3f0e9;color:var(--green-dark);border:1px solid #b9d8c8}
+  .lb-plan{background:#fdf0e6;color:var(--orange);border:1px solid #f0cfb3}
+  /* 두 프레임 높이를 맞춘다 — 실제 캡처 비율(780x1688)에 맞춰 고정 */
+  .frame{height:730px;border:3px solid var(--ink);border-radius:20px;overflow:hidden;background:#fff;
+    display:flex;align-items:flex-start;justify-content:center}
+  .frame img{width:100%;display:block}
+
+  /* 지도 화면 기획안(와이어프레임) — 실제 카카오맵 캡처가 아님을 명확히 한다 */
+  .wire{width:100%;height:100%;background:
+      repeating-linear-gradient(0deg,#eef1ee 0 1px,transparent 1px 34px),
+      repeating-linear-gradient(90deg,#eef1ee 0 1px,transparent 1px 34px), #f7f9f7;
+    position:relative;padding:14px}
+  .wire-top{background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:10px 12px;font-size:14px;font-weight:700;color:var(--ink)}
+  .pin{position:absolute;display:flex;align-items:center;gap:5px;
+    background:#fff;border-radius:16px;padding:5px 9px;font-size:12px;font-weight:700;
+    box-shadow:0 2px 6px rgba(0,0,0,.14);border:1px solid var(--border);white-space:nowrap}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .d-h{background:#c0392b} .d-p{background:#2d7d46} .d-t{background:#2b6ca3} .d-m{background:#b5581f}
+  .wire-card{position:absolute;left:14px;right:14px;bottom:14px;background:#fff;
+    border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+  .wc-t{font-size:17px;font-weight:800}
+  .wc-s{font-size:13px;color:var(--muted);margin-top:4px}
+  .wire-note{position:absolute;top:52px;left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,.94);border:1px dashed var(--orange);color:var(--orange);
+    font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;white-space:nowrap}
+
+  .api{display:flex;gap:12px}
+  .api div{flex:1;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+  .api .k{font-size:14px;font-weight:800;color:var(--green)}
+  .api .v{font-size:14px;color:var(--ink2);margin-top:3px;line-height:1.5}
+
+  footer{border-top:1px solid var(--border);padding-top:14px;font-size:14px;color:var(--muted);
+    display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="icon.png" alt="살아보고 아이콘">
+  <div>
+    <div class="title">살아보고 (SARABOGO)</div>
+    <div class="tagline">살아본 사람에게 묻고, 나에게 맞게 떠난다 — 시니어 지역살이 플랫폼</div>
+  </div>
+  <div class="stamp">
+    2026 한국관광공사<br>관광데이터 활용 공모전<br>웹·앱 구현 부문 참가작
+  </div>
+</header>
+
+<div class="grid">
+  <div class="col-left">
+    <div class="card">
+      <h2>서비스 개요</h2>
+      <p>은퇴 시니어가 지방에서 <b>한 달 살아보기</b>를 결정할 때 필요한 정보를 모읍니다.
+      관광지가 아니라 <b>“여기서 한 달 살 수 있는가”</b>를 먼저 보여줍니다 —
+      병원·약국 접근성, 한 달 실비, 실제 체류자의 검증된 후기.</p>
+    </div>
+
+    <div class="card">
+      <h2>카카오맵이 필요한 이유</h2>
+      <ul>
+        <li>지역별 <b>병원·약국·마트·관광지</b>를 지도에 마커로 표시</li>
+        <li>숙소 기준 <b>병원까지 이동 시간</b> 산출 (시니어 최대 관심사)</li>
+        <li>심평원 병원 데이터가 <b>주소 기반</b> → 좌표 변환(지오코딩) 필요</li>
+        <li>시니어에게 가장 <b>익숙한 지도 UI</b>라 학습 부담이 없음</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>사용 예정 카카오 API</h2>
+      <div class="api">
+        <div>
+          <div class="k">지도 JS SDK</div>
+          <div class="v">지도 렌더링<br>종류별 마커 표시</div>
+        </div>
+        <div>
+          <div class="k">로컬 · 지오코딩</div>
+          <div class="v">주소 → 좌표 변환<br>생활편의 시설 검색</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>개발 현황</h2>
+      <p>Next.js(PWA) + Supabase로 구현 중입니다. 한국관광공사 TourAPI 연동을 완료했고,
+      지역 카드 피드가 동작합니다. <b>현재 로컬 개발 단계</b>이며 지도 화면 구현을 위해 카카오맵 신청을 드립니다.</p>
+    </div>
+  </div>
+
+  <div class="col-right">
+    <h2>서비스 화면</h2>
+    <div class="screens">
+
+      <div class="screen">
+        <span class="screen-label lb-real">● 현재 구현 완료 · 실제 화면 캡처</span>
+        <div class="frame">
+          <img src="screen-feed.png" alt="살아보고 지역 피드 실제 화면">
+        </div>
+      </div>
+
+      <div class="screen">
+        <span class="screen-label lb-plan">◐ 구현 예정 · 기획안 (카카오맵 적용 화면)</span>
+        <div class="frame">
+          <div class="wire">
+            <div class="wire-top">충남 보령시 · 생활 인프라 지도</div>
+            <div class="wire-note">※ 카카오맵 SDK로 구현 예정 (실제 지도 아님)</div>
+
+            <div class="pin" style="top:150px;left:28px"><span class="dot d-h"></span>보령아산병원</div>
+            <div class="pin" style="top:225px;left:150px"><span class="dot d-p"></span>중앙약국</div>
+            <div class="pin" style="top:300px;left:40px"><span class="dot d-m"></span>하나로마트</div>
+            <div class="pin" style="top:380px;left:130px"><span class="dot d-t"></span>대천해수욕장</div>
+            <div class="pin" style="top:460px;left:36px"><span class="dot d-h"></span>보건지소</div>
+
+            <div class="wire-card">
+              <div class="wc-t">병원 차로 8분 · 약국 3곳</div>
+              <div class="wc-s">숙소 기준 · 심평원 데이터 + 카카오맵 길찾기</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>살아보고 · 개인 개발 프로젝트 (김선철)</span>
+  <span>첨부 이미지에 개인정보 없음 · 2026.07</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "name": "sarabogo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "살아본 사람에게 묻고, 나에게 맞게 떠난다 — 시니어 지역살이 플랫폼",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate": "npm run lint && npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": ">=0.32.0",
+    "@supabase/supabase-js": ">=2.45.0",
+    "clsx": "^2.1.1",
+    "next": ">=15.1.0",
+    "openai": "^6.46.0",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": ">=3.24.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": ">=16.1.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": ">=22.0.0",
+    "@types/react": ">=19.0.0",
+    "@types/react-dom": ">=19.0.0",
+    "@vitejs/plugin-react": ">=4.3.0",
+    "eslint": ">=9.0.0",
+    "eslint-config-next": ">=15.1.0",
+    "jsdom": ">=25.0.0",
+    "postcss": "^8.5.16",
+    "puppeteer-core": "^25.3.0",
+    "tailwindcss": "^4.3.2",
+    "typescript": ">=5.7.0",
+    "vitest": ">=2.1.0"
+  }
+}

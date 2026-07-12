@@ -1,0 +1,89 @@
+/*
+ * 디자인 토큰 — 색·타이포의 유일한 정의처 (CLAUDE.md UI 규칙).
+ * 블랙야크 트래커의 검증된 토큰 시스템을 채택하되, 값은 시니어 친화로 튜닝했다:
+ *   - 본문 최소 18px (--text-body 1.125rem)
+ *   - 보조 텍스트(fg-muted) 대비를 WCAG AA(4.5:1) 이상으로 상향 — "정보 없음" 가독성
+ * Tailwind v4 @theme 블록이라 유틸리티가 이 변수에서 생성된다.
+ */
+@theme {
+  /* 색 · 라이트(기본) */
+  --color-bg-base: #f7f4ef;
+  --color-bg-raised: #ffffff;
+  --color-bg-sunken: #ece7dd;
+  --color-fg-primary: #1a1a17; /* 본문 — 대비 16:1 */
+  --color-fg-secondary: #4d4f49; /* 보조 — 흰 배경 대비 8.3:1 */
+  --color-fg-muted: #6b695f; /* "정보 없음" 등 — 흰 배경 대비 5.2:1 (AA 통과) */
+
+  --color-accent: #1f6f54; /* 브랜드 딥그린 — 흰 배경 대비 5.9:1 */
+  --color-accent-warm: #b5581f; /* 출처 배지·강조 — 대비 4.9:1 */
+  --color-accent-cool: #3a6072; /* 정보 — 대비 5.6:1 */
+
+  --color-border: #d8d2c6;
+  --color-border-strong: #a39a86;
+
+  --color-star: #b8860b; /* 별점 채움 — 대비 4.6:1 */
+
+  /* 타이포 — 시니어 기준선(본문 18px 이상) */
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Malgun Gothic", sans-serif;
+
+  --text-display-lg--line-height: 1.15;
+  --text-display-lg: 2.5rem; /* 40px */
+  --text-display-md--line-height: 1.25;
+  --text-display-md: 1.75rem; /* 28px */
+  --text-lead--line-height: 1.5;
+  --text-lead: 1.375rem; /* 22px */
+  --text-body-lg--line-height: 1.7;
+  --text-body-lg: 1.25rem; /* 20px */
+  --text-body--line-height: 1.7;
+  --text-body: 1.125rem; /* 18px — 본문 최소 */
+  --text-body-sm--line-height: 1.6;
+  --text-body-sm: 1rem; /* 16px — 하한 */
+  --text-label--line-height: 1.4;
+  --text-label: 0.875rem; /* 14px — 배지 등 비본문만 */
+
+  /* 간격·터치 */
+  --spacing: 0.25rem;
+  --touch-min: 48px;
+
+  /* 라운드 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* 그림자 */
+  --shadow-xs: 0 1px 2px rgba(26, 26, 23, 0.05);
+  --shadow-sm: 0 2px 6px rgba(26, 26, 23, 0.07), 0 1px 2px rgba(26, 26, 23, 0.04);
+  --shadow-md: 0 8px 20px rgba(26, 26, 23, 0.09), 0 2px 6px rgba(26, 26, 23, 0.04);
+
+  /* 모션 */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-medium: 320ms;
+
+  /* 레이아웃 */
+  --feed-max-width: 560px; /* 세로 1열 카드 피드 폭 */
+}
+
+/* 다크 모드 오버라이드 */
+@layer base {
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg-base: #12140f;
+      --color-bg-raised: #1b1e18;
+      --color-bg-sunken: #0c0d0a;
+      --color-fg-primary: #f0ece3;
+      --color-fg-secondary: #c3bdb0; /* 대비 상향 */
+      --color-fg-muted: #9a9588;
+      --color-accent: #63b58f;
+      --color-accent-warm: #e0955a;
+      --color-accent-cool: #8fb3c3;
+      --color-border: #2c2f28;
+      --color-border-strong: #4a4d43;
+      --color-star: #e0b84a;
+    }
+  }
+}

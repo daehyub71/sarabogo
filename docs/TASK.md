@@ -4,64 +4,74 @@
 > **각 항목은 완료 즉시 체크한다.** Phase 완료 시 하단 이력에 완료 일시를 기록한다.
 > 구현은 TDD(Red → Green → Refactor). 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다.
 
-**현재 상태:** Phase 0 착수 전 (문서 정리 완료 · 2026-07-09)
+**현재 상태:** Phase 0 코드 스캐폴딩 완료 (2026-07-11). 외부 키·배포 대기. 다음: 키 발급 → 마이그레이션 실적용 → Phase 1.
 
 ---
 
 ## Phase 0 — 셋업
 
-**완료 조건:** `regions`에 시드 지역 1건이 들어가고, `lib/kto.ts`가 AppName을 부착해 관광공사 API를 1회 성공 호출한다. `DbPort`가 인메모리 페이크로도 전 테스트를 통과한다. Lighthouse PWA "설치 가능" 판정.
+**완료 조건:** `regions`에 시드 지역 1건이 들어가고, `lib/kto.ts`가 `MobileApp`을 부착해 관광공사 API를 1회 성공 호출한다. `DbPort`가 인메모리 페이크로도 전 테스트를 통과한다. Lighthouse PWA "설치 가능" 판정.
+
+> **진행(2026-07-11):** 코드 스캐폴딩 완료. lint·typecheck·test·build 모두 통과(29 테스트).
+> 남은 것은 전부 **외부 키·서비스·배포**가 필요한 항목(⏳ 표시).
 
 ### 계정·키 발급 (코드보다 먼저 — 리드타임 있음)
-- [ ] 공공데이터포털 가입 및 관광공사 TourAPI 4.0 **개발계정** 신청
-- [ ] 심평원 병원정보서비스 · 의료기관별상세정보서비스 · 약국정보조회 신청
-- [ ] 카카오 개발자 앱 생성 (REST API 키 + JS 키, 도메인 제한 설정)
-- [ ] Anthropic API 키 발급 (**Q1 확정: Claude**, `LLM_PROVIDER=anthropic`)
-- [ ] Supabase 프로젝트 생성
-- [ ] `.env.local` 작성 (`SPEC.md` §7 목록 전부) · `.env.example` 커밋
+- [ ] ⏳ 공공데이터포털 가입 및 관광공사 TourAPI 4.0 **개발계정** 신청
+- [ ] ⏳ 심평원 병원정보서비스 · 의료기관별상세정보서비스 · 약국정보조회 신청
+- [ ] ⏳ 카카오 개발자 앱 생성 (REST API 키 + JS 키, 도메인 제한 설정)
+- [ ] ⏳ Anthropic API 키 발급 (**Q1 확정: Claude**, `LLM_PROVIDER=anthropic`)
+- [ ] ⏳ Supabase 프로젝트 생성
+- [x] `.env.example` 작성 (`SPEC.md` §7 목록 전부) — `.env.local`은 키 확보 후
 
 ### 스캐폴딩
-- [ ] Next.js(App Router) + TypeScript 프로젝트 생성
-- [ ] vitest + testing-library 설정, `npm run validate` (lint + tsc --noEmit + test) 스크립트 정의
-- [ ] 카카오맵 JS SDK 로더 + `MapView.tsx` 최소 렌더 확인
-- [ ] Vercel 프로젝트 연결 (프리뷰 배포 확인)
+- [x] Next.js(App Router) + TypeScript 프로젝트 생성
+- [x] vitest + testing-library 설정, `npm run validate` (lint + tsc --noEmit + test) 스크립트 정의
+- [ ] ⏳ 카카오맵 JS SDK 로더 + `MapView.tsx` 최소 렌더 확인 (KAKAO_JS_KEY 필요)
+- [ ] ⏳ Vercel 프로젝트 연결 (프리뷰 배포 확인)
 
 ### 포트 & 어댑터 (교체 가능성 — C-5·C-6)
-- [ ] `src/types/` 도메인 타입 정의 (`Region`, `Review`, `Course` — 벤더 타입 무관)
-- [ ] `lib/db/port.ts` — `DbPort` 인터페이스 (도메인 타입만 주고받음)
-- [ ] `lib/db/adapters/supabase.ts` — 기본 구현 (`@supabase/*` import는 여기서만)
-- [ ] `lib/db/adapters/memory.ts` — 인메모리 페이크
-- [ ] **[Red→Green]** 동일 테스트 스위트가 supabase·memory 두 어댑터 모두에서 통과 (추상화 성립 증명 — R12)
-- [ ] `lib/llm/port.ts` — `LlmPort` + Zod 응답 스키마 (공급자 무관 환각 방어)
-- [ ] `lib/llm/adapters/anthropic.ts` · `openai.ts` — `LLM_PROVIDER` 환경변수로 선택
-- [ ] ESLint `no-restricted-imports` — `adapters/` 밖에서 벤더 SDK import 차단 (C-5)
+- [x] `src/types/domain.ts` 도메인 타입 정의 (`Region`, `Review`, `Course` — 벤더 타입 무관)
+- [x] `lib/db/port.ts` — `DbPort` 인터페이스 (도메인 타입만 주고받음)
+- [x] `lib/db/adapters/supabase.ts` — 기본 구현 (`@supabase/*` import는 여기서만)
+- [x] `lib/db/adapters/memory.ts` — 인메모리 페이크
+- [x] **[Red→Green]** 동일 계약(`runDbContract`)이 memory 통과. supabase는 자격증명 있을 때 동일 계약 실행(gated skip) — R12
+- [x] `lib/llm/port.ts` — `LlmPort` + Zod 응답 스키마 (공급자 무관 환각 방어)
+- [x] `lib/llm/adapters/anthropic.ts` · `openai.ts` — `LLM_PROVIDER` 환경변수로 선택
+- [x] ESLint `no-restricted-imports` — `adapters/` 밖에서 벤더 SDK import 차단 (C-5, 음성 테스트로 확인)
 
 ### 인가 (DB 추상화의 대가 — R11)
-- [ ] `lib/authz.ts` — 후기 write 인가 1차 경계 (DB 무관)
-- [ ] **[Red]** 타인 후기 수정·삭제 차단 테스트 — **인메모리 어댑터에서도 통과해야 함**
-- [ ] RLS 정책은 심층 방어(2차)로 유지 (`reviews`·`profiles`·`courses`)
+- [x] `lib/authz.ts` — 후기 write 인가 1차 경계 (DB 무관) + `lib/reviews.ts` 서비스 결합
+- [x] **[Red→Green]** 타인 후기 수정·삭제 차단 테스트 — 인메모리 어댑터에서 통과 확인
+- [x] RLS 정책은 심층 방어(2차)로 유지 (`0002_rls.sql`)
 
 ### DB
-- [ ] `04-database.md` 스키마로 마이그레이션 작성 (`supabase/migrations/`)
-- [ ] `review_origin` enum(6종) + `reviews_user_shape` / `public_doc` / `licensed` / `curated` CHECK 제약 (R6·R8·R14 방어)
-- [ ] `profiles.role` + `admin_audit` 테이블 + 동의서용 비공개 스토리지 버킷
-- [ ] 인덱스: `reviews(region_id)`, `places(region_id, kind)`, `programs(apply_end)`
-- [ ] RLS 정책: `reviews`·`profiles`·`courses` — write 본인만, read 공개(검수분만)
-- [ ] 시드 지역 1건 삽입 후 조회 확인
+- [x] `04-database.md` 스키마로 마이그레이션 작성 (`supabase/migrations/0001_init.sql`)
+- [x] `review_origin` enum(6종) + `reviews_user_shape` / `public_doc` / `licensed` / `curated` CHECK 제약 (R6·R8·R14)
+- [x] `profiles.role` + `admin_audit` 테이블 — 동의서용 비공개 버킷은 ⏳ Supabase 생성 후
+- [x] 인덱스: `reviews(region_id)`, `places(region_id, kind)`, `programs(apply_end)`, `reviews(source_domain)`
+- [x] RLS 정책 (`0002_rls.sql`) — write 본인만, read 공개(검수분만)
+- [ ] ⏳ 마이그레이션 실 적용 + 시드 지역 1건 삽입 후 조회 확인 (Supabase 프로젝트 필요)
 
 ### PWA · UI 기반
-- [ ] `public/manifest.json` + 아이콘(192·512 maskable) + 서비스워커
-- [ ] Lighthouse PWA "설치 가능" 판정 확인
-- [ ] `styles/tokens.css` — 시니어 타이포(본문 18px+)·대비 4.5:1 토큰 단일 출처 (FR-UI.4)
-- [ ] `BottomTabBar` — 아이콘 + 한글 레이블 (FR-UI.3)
-- [ ] `FeedList` + `LoadMoreButton` — 무한 스크롤 금지, 10개 단위 (FR-UI.2)
-- [ ] 모바일 퍼스트 레이아웃 · safe-area · 터치 타겟 48px 기준선
+- [x] `public/manifest.json` + 서비스워커(`sw.js`) + 등록 컴포넌트
+- [x] **앱 아이콘 제작 (2026-07-12)** — `assets/brand/icon.svg` 원본 → PNG 192·512·maskable512 + favicon32.
+      카카오 개발자 앱 아이콘 업로드용: `assets/brand/sarabogo-app-icon-512.png`
+- [ ] ⏳ Lighthouse PWA "설치 가능" 판정 확인 (배포 후)
+- [x] `styles/tokens.css` — 시니어 타이포(본문 18px+)·대비 4.5:1 토큰 단일 출처 (FR-UI.4). Tailwind v4 `@theme`
+- [x] **블랙야크 트래커 UI 수확** — Badge·Tag·SegmentedControl·StarRating·`cn` 이식(테스트 포함)
+- [x] `RegionCard` — 생활지표 우선(병원·한달실비·후기·별점) + null "정보 없음" 노출 (FR-1.2)
+- [x] `FeedList` + "더 보기" 버튼 — 무한 스크롤 금지, 10개 단위 (FR-UI.2)
+- [ ] `BottomTabBar` — 아이콘 + 한글 레이블 (FR-UI.3) — Phase 1 진입 시
+- [ ] 블랙야크 `BottomSheet`·`FilterBar` 추가 이식 — Phase 1 지도/필터 시
+- [x] 모바일 퍼스트 레이아웃 · safe-area · 터치 타겟 48px 기준선 (globals.css)
 
 ### 관광공사 클라이언트 (최우선)
-- [ ] **[Red]** `lib/kto.ts` 테스트 작성 — 모든 요청에 `AppName=sarabogo`가 붙는지 검증
-- [ ] **[Green]** `lib/kto.ts` 구현 (AppName 자동 주입, 에러·재시도 처리)
-- [ ] `areaCode2` 호출로 지역코드 목록 수신 확인 (실키 1회 수동 검증)
-- [ ] 팀 규칙 공유: 관광공사 호출은 `lib/kto.ts`만 경유. 직접 `fetch` 금지
+- [x] **[Red→Green]** `lib/kto.ts` — 모든 요청에 앱 식별자 `MobileApp=sarabogo` 부착 검증(9 테스트) + 재시도·오류 처리
+- [x] **`areaCode2` 실키 호출 성공 (2026-07-12)** — `resultCode 0000`, 서울·인천·대전 수신. [kto.integration.test.ts](../tests/lib/kto.integration.test.ts)
+- [x] **🔥 실호출로 잡은 버그 2건 (문서 규칙 자체가 틀렸음)**
+  - `AppName` 파라미터는 **TourAPI에 존재하지 않는다** → 보내면 `resultCode 10`으로 **모든 호출 실패**. `MobileApp`으로 정정
+  - KorService2는 **성공=중첩(`response.header`) / 오류=평평(`{resultCode}`)** 이라 중첩만 검사하면 오류를 성공으로 오인 → 양쪽 검사로 수정
+- [x] 팀 규칙: 관광공사 호출은 `lib/kto.ts`만 경유 — lint로 강제(직접 fetch 시 리뷰에서 차단)
 
 ---
 

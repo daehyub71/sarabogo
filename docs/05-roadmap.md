@@ -17,7 +17,7 @@
 - Next.js(App Router) + Supabase + 카카오맵 스캐폴딩
 - `.env.local` 키 발급 (관광공사·심평원 개발계정, 카카오, LLM)
 - DB 스키마 마이그레이션 (`docs/04-database.md`)
-- **모든 API 요청에 AppName=`sarabogo` 주입 유틸 먼저 작성**
+- **모든 API 요청에 앱 식별자 `MobileApp=sarabogo` 주입 유틸 먼저 작성** (`AppName`은 없는 파라미터)
 
 ### Phase 1 — 탐색 (지도) (2~3주)
 - 관광공사 지역기반/위치기반 API 연동 → `places` 정제 저장 배치
@@ -66,7 +66,7 @@ sarabogo/
 │   │       └── recommend/route.ts   # RAG 추천
 │   ├── lib/
 │   │   ├── supabase.ts
-│   │   ├── kto.ts                   # 관광공사 클라이언트(AppName 주입)
+│   │   ├── kto.ts                   # 관광공사 클라이언트(MobileApp 주입)
 │   │   ├── hira.ts                  # 심평원 클라이언트
 │   │   └── geocode.ts
 │   ├── components/
@@ -90,7 +90,7 @@ sarabogo/
 CLAUDE.md와 docs/ 전체를 읽고, Phase 0 셋업부터 시작해줘.
 먼저 Next.js(App Router) + Supabase + 카카오맵 스캐폴딩을 만들고,
 docs/04-database.md의 스키마로 마이그레이션 파일을 생성해줘.
-관광공사 API 클라이언트(src/lib/kto.ts)는 모든 요청에 AppName='sarabogo'를
+관광공사 API 클라이언트(src/lib/kto.ts)는 모든 요청에 MobileApp='sarabogo'를
 자동 주입하도록 먼저 작성해줘.
 ```
 
@@ -98,7 +98,7 @@ docs/04-database.md의 스키마로 마이그레이션 파일을 생성해줘.
 
 ## 리스크 체크리스트
 
-- [ ] 관광공사 운영계정 승인 (개발 로그·AppName·URL 확보) — 시간 소요, 일찍 준비
+- [ ] 관광공사 운영계정 승인 (개발 로그·앱이름(MobileApp)·URL 확보) — 시간 소요, 일찍 준비
 - [ ] 시딩 후기 출처 표기 누락 없는지
 - [ ] 구글 리뷰 DB 저장 안 했는지 (place_id만)
 - [ ] API 키 클라이언트 노출 안 됐는지 (서버 프록시)

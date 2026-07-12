@@ -111,7 +111,8 @@ npm run dev          # 로컬 개발 서버
 
 ### 반드시 지킬 코드 규칙
 
-- 관광공사 API는 **`src/lib/kto.ts`만 경유**한다. 직접 `fetch` 금지 — `AppName=sarabogo` 누락은 운영계정 승인 거부 사유.
+- 관광공사 API는 **`src/lib/kto.ts`만 경유**한다. 직접 `fetch` 금지 — 앱 식별자(`MobileApp=sarabogo`) 누락은 운영계정 승인 거부 사유.
+- ⚠️ **TourAPI에 `AppName` 파라미터는 없다.** 보내면 API가 거부한다(resultCode 10 · `INVALID_REQUEST_PARAMETER_ERROR(AppName)`). 앱 이름은 **`MobileApp`** 으로 전달한다. 2026-07-12 실호출로 확인.
 - 심평원은 `src/lib/hira.ts`, 지오코딩은 `src/lib/geocode.ts`를 경유한다.
 - 외부 API 키는 서버(Route Handler / Edge Function)에서만 사용한다. 예외는 `KAKAO_JS_KEY`(도메인 제한 필수).
 - 화면은 외부 API를 실시간 호출하지 않는다. 배치가 `places`에 저장하고, 화면은 `lib/db`만 읽는다.
@@ -131,7 +132,8 @@ npm run dev          # 로컬 개발 서버
 - ❌ 구글 리뷰를 DB에 저장 (Places API 정책 위반 — place_id만 저장 가능)
 - ❌ 유튜브·블로그·구글맵 스크래핑 (약관 위반 + IP 차단 리스크)
 - ❌ 출처 표기 없이 관광공사 이미지 재배포
-- ❌ 모든 API 요청에 일관된 AppName 누락 (운영계정 승인 곤란)
+- ❌ 모든 API 요청에 일관된 앱 식별자(`MobileApp=sarabogo`) 누락 (운영계정 승인 곤란)
+- ❌ TourAPI 요청에 `AppName` 파라미터 추가 — **존재하지 않는 파라미터라 호출이 전부 실패한다**
 - ❌ **LLM이 원문 근거 없이 별점·비용을 추정 기입 (합성 후기)** — "검증된 후기"라는 정체성의 자기부정
 - ❌ 공공누리 제2·4유형(상업 금지·변형 금지) 저작물을 시딩에 사용
 - ❌ **관리자 콘솔에 블로그·커뮤니티 원문 붙여넣기** — 손으로 하는 크롤링일 뿐이다. 수단이 아니라 행위가 기준

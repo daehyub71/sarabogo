@@ -1,0 +1,92 @@
+/**
+ * 인메모리 DbPort 어댑터.
+ *
+ * 용도 둘: (1) 단위 테스트, (2) 추상화가 실제로 성립하는지 증명.
+ * 같은 계약 테스트가 이 어댑터와 Supabase 어댑터 양쪽에서 통과해야 한다 (R12).
+ * 벤더 SDK를 import하지 않으므로 인가·비즈니스 로직 테스트가 DB 없이 돌아간다.
+ */
+import type { DbPort, ReviewPatch } from "@/lib/db/port";
+import type {
+  Course,
+  NewReview,
+  Profile,
+  Region,
+  Review,
+} from "@/types/domain";
+
+interface Seed {
+  regions?: Region[];
+  reviews?: Review[];
+  courses?: Course[];
+  profiles?: Profile[];
+}
+
+export function createMemoryDb(seed: Seed = {}): DbPort {
+  const regions = new Map<string, Region>(
+    (seed.regions ?? []).map((r) => [r.id, r]),
+  );
+  const reviews = new Map<string, Review>(
+    (seed.reviews ?? []).map((r) => [r.id, r]),
+  );
+  const courses = new Map<string, Course>(
+    (seed.courses ?? []).map((c) => [c.id, c]),
+  );
+  const profiles = new Map<string, Profile>(
+    (seed.profiles ?? []).map((p) => [p.id, p]),
+  );
+
+  let counter = reviews.size;
+  const nextId = () => `mem-review-${++counter}`;
+
+  const isPublic = (r: Review) => r.origin === "user" || r.verifiedAt !== null;
+
+  return {
+    async listRegions() {
+      return [...regions.values()];
+    },
+
+    async getRegion(id) {
+      return regions.get(id) ?? null;
+    },
+
+    async listPublicReviewsByRegion(regionId) {
+      return [...reviews.values()].filter(
+        (r) => r.regionId === regionId && isPublic(r),
+      );
+    },
+
+    async getReview(id) {
+      return reviews.get(id) ?? null;
+    },
+
+    async createReview(input: NewReview) {
+      const review: Review = {
+        ...input,
+        id: nextId(),
+        createdAt: new Date(0).toISOString(),
+      };
+      reviews.set(review.id, review);
+      return review;
+    },
+
+    async updateReview(id, patch: ReviewPatch) {
+      const existing = reviews.get(id);
+      if (!existing) throw new Error(`review not found: ${id}`);
+      const updated: Review = { ...existing, ...patch };
+      reviews.set(id, updated);
+      return updated;
+    },
+
+    async deleteReview(id) {
+      reviews.delete(id);
+    },
+
+    async listCoursesByRegion(regionId) {
+      return [...courses.values()].filter((c) => c.regionId === regionId);
+    },
+
+    async getProfile(id) {
+      return profiles.get(id) ?? null;
+    },
+  };
+}

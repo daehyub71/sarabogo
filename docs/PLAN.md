@@ -31,7 +31,7 @@
 [Next.js App Router · Vercel]
     ├── Server Component ── lib/db (포트) 로 조회 (지역·후기·코스 읽기)
     └── Route Handler
-          ├── /api/tour/*      → lib/kto.ts    → 관광공사 TourAPI  (AppName 주입)
+          ├── /api/tour/*      → lib/kto.ts    → 관광공사 TourAPI  (MobileApp 주입)
           ├── /api/medical/*   → lib/hira.ts   → 심평원 API
           └── /api/recommend   → ① lib/db 로 후기 쿼리
                                  ② 후기 + 관광정보를 프롬프트에 주입
@@ -57,7 +57,7 @@
 | 결정 | 이유 |
 |------|------|
 | **화면은 외부 API를 직접 호출하지 않는다.** 배치가 `places`에 정제 저장하고, 화면은 `lib/db`만 읽는다 | 응답 지연·API 쿼터·장애 전파를 한 번에 차단. LCP 2.5초 목표의 전제 |
-| **외부 API 호출은 전부 `lib/` 클라이언트를 경유한다.** `fetch`를 직접 쓰지 않는다 | `AppName=sarabogo` 누락 방지 (운영계정 승인 요건). 재시도·에러 처리 일원화 |
+| **외부 API 호출은 전부 `lib/` 클라이언트를 경유한다.** `fetch`를 직접 쓰지 않는다 | 앱 식별자 `MobileApp=sarabogo` 누락 방지 (운영계정 승인 요건). 재시도·에러 처리 일원화 |
 | **RAG 컨텍스트는 서버에서만 구성한다** | 후기 원문·프롬프트가 클라이언트에 노출되지 않게 |
 | **LLM은 포트+어댑터.** 공급자는 `LLM_PROVIDER` 환경변수로 교체 | Q1(Claude vs OpenAI)이 미결. 응답 스키마 검증(Zod)을 포트에 두어 공급자와 무관하게 환각 방어 |
 | **DB도 포트+어댑터.** 화면·API는 `DbPort` 인터페이스만 안다 | 사용자 요구(교체 가능성). 어댑터는 당분간 Supabase 하나뿐이며, 두 번째 어댑터는 필요해질 때 쓴다 |
@@ -101,7 +101,7 @@
 **빌드 순서상 먼저 존재해야 하는 것**
 
 1. `types/` — 도메인 타입. 나머지 전부가 여기 의존한다.
-2. `lib/kto.ts` — AppName 주입 유틸. **다른 어떤 관광공사 호출보다 먼저 작성한다** (제약 C-1).
+2. `lib/kto.ts` — 앱 식별자(`MobileApp`) 주입 유틸. **다른 어떤 관광공사 호출보다 먼저 작성한다** (제약 C-1).
 3. `lib/db` 포트 + Supabase 어댑터 + 마이그레이션 — 배치와 화면 양쪽의 전제.
 4. `lib/authz` — 후기 write 인가. Phase 2 이전에 존재해야 한다.
 
@@ -118,9 +118,9 @@
 
 | 범위 | 내용 |
 |------|------|
-| 포함 | Next.js(App Router) + 카카오맵 스캐폴딩 / 개발계정 키 발급 / DB 마이그레이션 / `lib/kto.ts` AppName 주입 유틸 / **`DbPort` + Supabase 어댑터** / **`LlmPort` + 어댑터 2종** / **`lib/authz`** / PWA manifest + 서비스워커 / 디자인 토큰(시니어 대비·타이포) / 테스트 환경(vitest) |
+| 포함 | Next.js(App Router) + 카카오맵 스캐폴딩 / 개발계정 키 발급 / DB 마이그레이션 / `lib/kto.ts` MobileApp 주입 유틸 / **`DbPort` + Supabase 어댑터** / **`LlmPort` + 어댑터 2종** / **`lib/authz`** / PWA manifest + 서비스워커 / 디자인 토큰(시니어 대비·타이포) / 테스트 환경(vitest) |
 | 제외 | 실제 데이터 수집, 화면 디자인 구현 |
-| 완료 조건 | `regions`에 시드 지역 1건이 들어가고, `lib/kto.ts`가 AppName을 부착해 관광공사 API를 1회 성공 호출한다. **`DbPort`가 인메모리 페이크 어댑터로도 통과하는 테스트가 있다** (추상화가 실제로 성립함을 증명). Lighthouse PWA 설치 가능 판정 |
+| 완료 조건 | `regions`에 시드 지역 1건이 들어가고, `lib/kto.ts`가 `MobileApp`을 부착해 관광공사 API를 1회 성공 호출한다. **`DbPort`가 인메모리 페이크 어댑터로도 통과하는 테스트가 있다** (추상화가 실제로 성립함을 증명). Lighthouse PWA 설치 가능 판정 |
 
 ### Phase 1 — 탐색 지도 (2~3주) · F1
 
@@ -210,7 +210,7 @@ sarabogo/
 │   │   │       ├── anthropic.ts
 │   │   │       └── openai.ts
 │   │   ├── authz.ts                   # 인가 1차 경계 (DB 무관)
-│   │   ├── kto.ts                     # 관광공사 클라이언트 (AppName 주입)
+│   │   ├── kto.ts                     # 관광공사 클라이언트 (MobileApp 주입)
 │   │   ├── hira.ts                    # 심평원 클라이언트
 │   │   └── geocode.ts
 │   ├── components/
@@ -231,7 +231,7 @@ sarabogo/
 
 | # | 리스크 | 영향 | 대응 |
 |---|--------|------|------|
-| R1 | **운영계정 승인 지연** — 개발 로그·AppName·실서비스 URL 요구, 약 1주 소요 | 10월 심사 시 실데이터 시연 불가 | Phase 0부터 AppName 부착, 9월 초 신청. 승인 전에도 개발계정으로 데모 가능하도록 분리 |
+| R1 | **운영계정 승인 지연** — 개발 로그·앱이름(MobileApp)·실서비스 URL 요구, 약 1주 소요 | 10월 심사 시 실데이터 시연 불가 | Phase 0부터 MobileApp 부착, 9월 초 신청. 승인 전에도 개발계정으로 데모 가능하도록 분리 |
 | R2 | **후기 콜드스타트** — 초기 후기 0건이면 F3(RAG)가 성립하지 않음 | 핵심 차별점 붕괴 | 공공누리 제1유형 발간물 LLM 추출로 시딩. Phase 1과 병렬 착수. 에디터 추천 코스로 빈 화면 방어 |
 | R3 | **심평원 데이터 지오코딩 실패율** — 주소 기반이라 변환 실패 건 발생 | 지도 마커 누락 | 실패 건 로깅·수기 보정 큐. 지역당 병원 상위 N건만 우선 처리 |
 | R4 | **LLM 환각·JSON 스키마 위반** | 추천 신뢰도 붕괴 = 정체성 훼손 | 근거 후기 id를 응답에 강제, 서버에서 id 실존 검증. 위반 시 1회 재시도 후 에디터 코스로 폴백 |

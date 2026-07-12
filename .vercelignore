@@ -1,0 +1,15 @@
+# Vercel 업로드 제외 — 환경변수는 Vercel 대시보드에서 설정한다. 파일로 올리지 않는다.
+.env
+.env.local
+.env*.local
+
+# 비코드 산출물 (제안덱·블로그 원고·브랜드 원본) — 배포 불필요
+assets/
+docs/
+
+# 로컬 산출물
+.next/
+node_modules/
+coverage/
+tests/
+scripts/
