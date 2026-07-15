@@ -4,7 +4,7 @@
 > **각 항목은 완료 즉시 체크한다.** Phase 완료 시 하단 이력에 완료 일시를 기록한다.
 > 구현은 TDD(Red → Green → Refactor). 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다.
 
-**현재 상태:** Phase 0 코드 스캐폴딩 완료 (2026-07-11). 외부 키·배포 대기. 다음: 키 발급 → 마이그레이션 실적용 → Phase 1.
+**현재 상태:** Phase 0 사실상 완료 (2026-07-12). 관광공사·심평원 실호출 검증, Supabase 마이그레이션 실적용+계약 통과, Vercel 배포(https://sarabogo.vercel.app). 남은 것: 카카오맵 승인 대기, Lighthouse PWA 판정. 다음: Phase 1(지도).
 
 ---
 
@@ -50,7 +50,12 @@
 - [x] `profiles.role` + `admin_audit` 테이블 — 동의서용 비공개 버킷은 ⏳ Supabase 생성 후
 - [x] 인덱스: `reviews(region_id)`, `places(region_id, kind)`, `programs(apply_end)`, `reviews(source_domain)`
 - [x] RLS 정책 (`0002_rls.sql`) — write 본인만, read 공개(검수분만)
-- [ ] ⏳ 마이그레이션 실 적용 + 시드 지역 1건 삽입 후 조회 확인 (Supabase 프로젝트 필요)
+- [x] **마이그레이션 실 적용 (2026-07-12)** — `0001`+`0002`를 실 Supabase에 적용, 7개 테이블+RLS 생성
+- [x] **시드 지역 1건** (충남 보령시) 삽입·조회 확인
+- [x] **Supabase 어댑터가 인메모리와 동일 계약을 실 DB로 통과** (6/6) — "DB 교체 가능"이 사실임을 증명
+- [ ] ⚠️ **공유 DB 주의**: 이 Supabase는 다른 프로젝트 6~7개와 공유 중(사용자 결정). 노출된 service_role 키가 전체 DB 관리자 권한 → 공개 전 키 회전 권장. 향후 전용 프로젝트 분리 검토
+- [x] **실 DB가 잡은 계약 버그**: memory는 아무 문자열 id·FK 무시로 통과했으나 Postgres는 uuid·FK·CHECK를 강제.
+      fixture를 유효 상태로 재설계(uuid, 검수 없인 public_doc 저장 불가 등). 인메모리만 봤으면 못 잡았을 불일치
 
 ### PWA · UI 기반
 - [x] `public/manifest.json` + 서비스워커(`sw.js`) + 등록 컴포넌트

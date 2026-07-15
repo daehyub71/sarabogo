@@ -77,10 +77,48 @@ function checkKakaoJs() {
   ok("카카오 JS 키", `설정됨(len=${key.length}) · 실검증은 브라우저 지도 로드 시`);
 }
 
+// ── LLM (Anthropic · 기본 공급자) ─────────────
+async function checkAnthropic() {
+  if (!process.env.ANTHROPIC_API_KEY) return bad("Anthropic (Claude)", "ANTHROPIC_API_KEY 미설정");
+  try {
+    const { default: Anthropic } = await import("@anthropic-ai/sdk");
+    const client = new Anthropic();
+    const msg = await client.messages.create({
+      model: "claude-opus-4-8",
+      max_tokens: 16,
+      messages: [{ role: "user", content: "OK라고만 답해" }],
+    });
+    const text = msg.content.find((b) => b.type === "text")?.text ?? "";
+    ok("Anthropic (Claude)", `응답 수신: "${text.slice(0, 20)}" · model=${msg.model}`);
+  } catch (e) {
+    bad("Anthropic (Claude)", `${e.status ?? ""} ${e.message}`.trim().slice(0, 90));
+  }
+}
+
+// ── LLM (OpenAI · 대체 어댑터) ────────────────
+async function checkOpenAi() {
+  if (!process.env.OPENAI_API_KEY) return bad("OpenAI (GPT)", "OPENAI_API_KEY 미설정");
+  try {
+    const { default: OpenAI } = await import("openai");
+    const client = new OpenAI();
+    const res = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_tokens: 16,
+      messages: [{ role: "user", content: "OK라고만 답해" }],
+    });
+    const text = res.choices[0]?.message?.content ?? "";
+    ok("OpenAI (GPT)", `응답 수신: "${text.slice(0, 20)}" · model=${res.model}`);
+  } catch (e) {
+    bad("OpenAI (GPT)", `${e.status ?? ""} ${e.message}`.trim().slice(0, 90));
+  }
+}
+
 await checkTour();
 await checkHira();
 await checkKakao();
 checkKakaoJs();
+await checkAnthropic();
+await checkOpenAi();
 
 console.log("\n외부 API 키 점검 (실호출)\n" + "─".repeat(52));
 for (const r of results) {

@@ -8,11 +8,21 @@ import type { NewReview, Region, Review } from "@/types/domain";
  * 같은 스위트를 memory·supabase 어댑터 양쪽에 돌린다. 둘 다 통과해야
  * "DB 교체 가능"이 말이 아니라 사실이 된다 (CLAUDE.md 교체 가능성, R12).
  *
- * makeDb는 시드 데이터를 받아 어댑터 인스턴스를 만든다.
+ * ⚠️ 실 DB가 가르쳐준 제약 (2026-07-12):
+ *   - id 컬럼은 uuid다 → fixture는 유효 UUID를 쓴다(문자열 "region-1" 불가).
+ *   - reviews.author_id/verified_by는 profiles FK → 사용자 후기는 실제 프로필이 필요하다.
+ *     프로필 FK가 필요한 사용자 후기 케이스는 authz.test.ts(memory)에서 다루고,
+ *     여기서는 FK 없는 시딩 후기(author 없음)로 계약을 검증한다.
+ *   - public_doc은 verified_at 없이 저장 불가(CHECK). 미검수 케이스는 interview로 만든다.
  */
 
+const REGION_ID = "11111111-1111-1111-1111-111111111111";
+const REVIEW_ID = "22222222-2222-2222-2222-222222222222";
+const UNVERIFIED_ID = "33333333-3333-3333-3333-333333333333";
+const MISSING_ID = "99999999-9999-9999-9999-999999999999";
+
 const REGION: Region = {
-  id: "region-1",
+  id: REGION_ID,
   areaCode: 34,
   sigunguCode: 11,
   name: "충남 보령시",
@@ -23,10 +33,11 @@ const REGION: Region = {
   avgMonthlyCost: 82,
 };
 
-function baseReview(over: Partial<Review> = {}): Review {
+/** 검수된 공공저작물 후기 — FK 없음(author/verified_by null), CHECK 충족. */
+function seedReview(over: Partial<Review> = {}): Review {
   return {
-    id: "seed-review-1",
-    regionId: "region-1",
+    id: REVIEW_ID,
+    regionId: REGION_ID,
     origin: "public_doc",
     authorId: null,
     medicalAccess: 4,
@@ -44,7 +55,7 @@ function baseReview(over: Partial<Review> = {}): Review {
     sourceLicense: "KOGL-1",
     consentDocUrl: null,
     extractedBy: "llm",
-    verifiedBy: "admin-1",
+    verifiedBy: null,
     verifiedAt: new Date(0).toISOString(),
     createdAt: new Date(0).toISOString(),
     ...over,
@@ -60,86 +71,82 @@ export function runDbContract(adapterName: string, makeDb: MakeDb) {
   describe(`DbPort 계약 · ${adapterName}`, () => {
     it("지역을 id로 조회한다", async () => {
       const db = await makeDb({ regions: [REGION] });
-      expect(await db.getRegion("region-1")).toMatchObject({ name: "충남 보령시" });
-      expect(await db.getRegion("nope")).toBeNull();
+      expect(await db.getRegion(REGION_ID)).toMatchObject({ name: "충남 보령시" });
+      expect(await db.getRegion(MISSING_ID)).toBeNull();
     });
 
     it("검수된 시딩 후기는 공개 목록에 포함된다", async () => {
-      const db = await makeDb({ regions: [REGION], reviews: [baseReview()] });
-      const list = await db.listPublicReviewsByRegion("region-1");
+      const db = await makeDb({ regions: [REGION], reviews: [seedReview()] });
+      const list = await db.listPublicReviewsByRegion(REGION_ID);
       expect(list).toHaveLength(1);
     });
 
     it("미검수 시딩 후기는 공개 목록에서 제외된다 (FR-2.6)", async () => {
-      const db = await makeDb({
-        regions: [REGION],
-        reviews: [baseReview({ id: "unverified", verifiedAt: null, verifiedBy: null })],
-      });
-      const list = await db.listPublicReviewsByRegion("region-1");
-      expect(list).toHaveLength(0);
-    });
-
-    it("사용자 후기는 검수 없이도 공개된다", async () => {
+      // public_doc은 CHECK 때문에 미검수로 저장 불가 → interview로 미검수 상태를 만든다.
       const db = await makeDb({
         regions: [REGION],
         reviews: [
-          baseReview({
-            id: "user-review",
-            origin: "user",
-            authorId: "user-1",
+          seedReview({
+            id: UNVERIFIED_ID,
+            origin: "interview",
+            sourceOrg: null,
+            sourceYear: null,
+            sourceTitle: null,
+            sourceUrl: null,
+            sourceDomain: null,
             sourceLicense: null,
+            extractedBy: null,
             verifiedAt: null,
-            verifiedBy: null,
           }),
         ],
       });
-      const list = await db.listPublicReviewsByRegion("region-1");
-      expect(list.map((r) => r.id)).toContain("user-review");
+      const list = await db.listPublicReviewsByRegion(REGION_ID);
+      expect(list).toHaveLength(0);
     });
 
     it("null 별점을 0으로 바꾸지 않고 그대로 보존한다", async () => {
-      const db = await makeDb({ regions: [REGION], reviews: [baseReview()] });
-      const [r] = await db.listPublicReviewsByRegion("region-1");
+      const db = await makeDb({ regions: [REGION], reviews: [seedReview()] });
+      const [r] = await db.listPublicReviewsByRegion(REGION_ID);
       expect(r.loneliness).toBeNull();
       expect(r.revisit).toBeNull();
       expect(r.medicalAccess).toBe(4);
     });
 
-    it("후기를 생성하고 다시 조회할 수 있다", async () => {
+    it("시딩 후기를 생성하고 다시 조회할 수 있다", async () => {
       const db = await makeDb({ regions: [REGION] });
       const input: NewReview = {
-        regionId: "region-1",
-        origin: "user",
-        authorId: "user-1",
+        regionId: REGION_ID,
+        origin: "public_doc",
+        authorId: null,
         medicalAccess: 5,
         loneliness: 2,
         transport: 4,
         revisit: 5,
         monthlyCost: 90,
-        summary: "직접 살아본 후기",
+        summary: "발췌 요약",
         tags: ["의료좋음"],
-        sourceOrg: null,
-        sourceYear: null,
-        sourceTitle: null,
-        sourceUrl: null,
-        sourceDomain: null,
-        sourceLicense: null,
+        sourceOrg: "강진군",
+        sourceYear: 2024,
+        sourceTitle: "강진 한달살기 수기",
+        sourceUrl: "https://example.gov/gangjin-2024",
+        sourceDomain: "example.gov",
+        sourceLicense: "KOGL-1",
         consentDocUrl: null,
-        extractedBy: null,
+        extractedBy: "llm",
         verifiedBy: null,
-        verifiedAt: null,
+        verifiedAt: new Date(0).toISOString(),
       };
       const created = await db.createReview(input);
       expect(created.id).toBeTruthy();
-      expect(await db.getReview(created.id)).toMatchObject({ summary: "직접 살아본 후기" });
+      expect(await db.getReview(created.id)).toMatchObject({ summary: "발췌 요약" });
     });
 
     it("후기를 수정·삭제한다", async () => {
-      const db = await makeDb({ regions: [REGION], reviews: [baseReview()] });
-      const patched = await db.updateReview("seed-review-1", { transport: 5 });
+      const db = await makeDb({ regions: [REGION], reviews: [seedReview()] });
+      const patched = await db.updateReview(REVIEW_ID, { transport: 5 });
       expect(patched.transport).toBe(5);
-      await db.deleteReview("seed-review-1");
-      expect(await db.getReview("seed-review-1")).toBeNull();
+      await db.deleteReview(REVIEW_ID);
+      expect(await db.getReview(REVIEW_ID)).toBeNull();
     });
   });
 }

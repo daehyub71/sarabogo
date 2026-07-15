@@ -27,8 +27,11 @@ describe.skipIf(!enabled)("supabase (integration)", () => {
   runDbContract("supabase", async (seed) => {
     // 시드 데이터를 실제 테이블에 적재한 뒤 어댑터를 반환한다.
     // 계약 스위트가 update/delete로 변형하므로 전용 테스트 DB에서만 돌린다.
-    await client.from("reviews").delete().neq("id", "");
-    await client.from("regions").delete().neq("id", "");
+    // ⚠️ id는 uuid다. neq("id","")는 빈 문자열↔uuid 비교로 실패해 정리가 안 된다.
+    //    존재할 수 없는 uuid로 neq를 걸어 전 행을 지운다. reviews→regions 순(FK).
+    const NIL = "00000000-0000-0000-0000-000000000000";
+    await client.from("reviews").delete().neq("id", NIL);
+    await client.from("regions").delete().neq("id", NIL);
     if (seed.regions?.length) {
       await client.from("regions").insert(
         seed.regions.map((r) => ({
