@@ -64,6 +64,19 @@ export interface Region {
 }
 
 /**
+ * 지역 카드용 요약. 지역 기본 정보 + 후기 집계 + 대표 이미지.
+ * 화면(RegionCard)이 필요한 데이터를 어댑터가 한 번에 조합해 준다.
+ */
+export interface RegionSummary extends Region {
+  /** 공개(검수된) 후기 수. */
+  reviewCount: number;
+  /** 종합 별점(1~5). 후기 없으면 null (0으로 치환 금지). */
+  avgStars: number | null;
+  /** 대표 이미지 URL(관광지 첫 이미지). 없으면 null. */
+  coverImageUrl: string | null;
+}
+
+/**
  * 구조화 후기. 모든 별점은 nullable — 원문에 근거 없으면 null.
  * 화면·집계 어디서도 null을 0으로 치환하지 않는다 (CLAUDE.md).
  */

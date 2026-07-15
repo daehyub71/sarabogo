@@ -148,5 +148,21 @@ export function runDbContract(adapterName: string, makeDb: MakeDb) {
       await db.deleteReview(REVIEW_ID);
       expect(await db.getReview(REVIEW_ID)).toBeNull();
     });
+
+    it("지역 요약: 후기 없으면 별점 null·후기 0건", async () => {
+      const db = await makeDb({ regions: [REGION] });
+      const [s] = await db.listRegionSummaries();
+      expect(s.name).toBe("충남 보령시");
+      expect(s.reviewCount).toBe(0);
+      expect(s.avgStars).toBeNull(); // 0으로 치환 금지
+    });
+
+    it("지역 요약: 검수 후기가 있으면 집계에 반영된다", async () => {
+      const db = await makeDb({ regions: [REGION], reviews: [seedReview()] });
+      const [s] = await db.listRegionSummaries();
+      expect(s.reviewCount).toBe(1);
+      // seedReview: medical=4, transport=3, loneliness/revisit=null → 평균 3.5
+      expect(s.avgStars).toBeCloseTo(3.5);
+    });
   });
 }

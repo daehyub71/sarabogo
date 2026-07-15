@@ -12,10 +12,13 @@ import type { DbPort, ReviewPatch } from "@/lib/db/port";
 import type {
   Course,
   NewReview,
+  Place,
   Profile,
   Region,
+  RegionSummary,
   Review,
 } from "@/types/domain";
+import { overallStars } from "@/lib/reviews-aggregate";
 
 // ── row → 도메인 매퍼 ───────────────────────────
 interface RegionRow {
@@ -135,6 +138,36 @@ function patchToRow(p: ReviewPatch): Record<string, unknown> {
   return row;
 }
 
+interface PlaceRow {
+  id: string;
+  region_id: string;
+  content_id: string | null;
+  google_place_id: string | null;
+  kind: Place["kind"];
+  name: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  meta: Record<string, unknown> | null;
+  source: Place["source"];
+}
+
+function toPlace(r: PlaceRow): Place {
+  return {
+    id: r.id,
+    regionId: r.region_id,
+    contentId: r.content_id,
+    googlePlaceId: r.google_place_id,
+    kind: r.kind,
+    name: r.name,
+    address: r.address,
+    lat: r.lat,
+    lng: r.lng,
+    meta: r.meta,
+    source: r.source,
+  };
+}
+
 // ── 어댑터 ──────────────────────────────────────
 export function createSupabaseDb(client: SupabaseClient): DbPort {
   return {
@@ -142,6 +175,43 @@ export function createSupabaseDb(client: SupabaseClient): DbPort {
       const { data, error } = await client.from("regions").select("*");
       if (error) throw error;
       return (data as RegionRow[]).map(toRegion);
+    },
+
+    async listRegionSummaries() {
+      const { data, error } = await client.from("regions").select("*");
+      if (error) throw error;
+      const regions = (data as RegionRow[]).map(toRegion);
+
+      // 지역 수가 적으므로(≤20) 지역별로 후기 집계·대표 이미지를 조회한다.
+      return Promise.all(
+        regions.map(async (region): Promise<RegionSummary> => {
+          const reviews = await this.listPublicReviewsByRegion(region.id);
+          const cover = await client
+            .from("places")
+            .select("meta")
+            .eq("region_id", region.id)
+            .eq("kind", "tour")
+            .not("meta->>firstImage", "is", null)
+            .limit(1)
+            .maybeSingle();
+          const firstImage =
+            (cover.data?.meta as Record<string, unknown> | null)?.firstImage ?? null;
+          return {
+            ...region,
+            reviewCount: reviews.length,
+            avgStars: overallStars(reviews),
+            coverImageUrl: typeof firstImage === "string" ? firstImage : null,
+          };
+        }),
+      );
+    },
+
+    async listPlacesByRegion(regionId, kind) {
+      let q = client.from("places").select("*").eq("region_id", regionId);
+      if (kind) q = q.eq("kind", kind);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data as PlaceRow[]).map(toPlace);
     },
 
     async getRegion(id) {

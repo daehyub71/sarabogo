@@ -9,16 +9,20 @@ import type { DbPort, ReviewPatch } from "@/lib/db/port";
 import type {
   Course,
   NewReview,
+  Place,
   Profile,
   Region,
+  RegionSummary,
   Review,
 } from "@/types/domain";
+import { overallStars } from "@/lib/reviews-aggregate";
 
 interface Seed {
   regions?: Region[];
   reviews?: Review[];
   courses?: Course[];
   profiles?: Profile[];
+  places?: Place[];
 }
 
 export function createMemoryDb(seed: Seed = {}): DbPort {
@@ -34,11 +38,14 @@ export function createMemoryDb(seed: Seed = {}): DbPort {
   const profiles = new Map<string, Profile>(
     (seed.profiles ?? []).map((p) => [p.id, p]),
   );
+  const places: Place[] = seed.places ?? [];
 
   let counter = reviews.size;
   const nextId = () => `mem-review-${++counter}`;
 
   const isPublic = (r: Review) => r.origin === "user" || r.verifiedAt !== null;
+  const publicReviewsOf = (regionId: string) =>
+    [...reviews.values()].filter((r) => r.regionId === regionId && isPublic(r));
 
   return {
     async listRegions() {
@@ -47,6 +54,30 @@ export function createMemoryDb(seed: Seed = {}): DbPort {
 
     async getRegion(id) {
       return regions.get(id) ?? null;
+    },
+
+    async listRegionSummaries() {
+      return [...regions.values()].map((region): RegionSummary => {
+        const rv = publicReviewsOf(region.id);
+        const cover = places.find(
+          (p) =>
+            p.regionId === region.id &&
+            p.kind === "tour" &&
+            typeof p.meta?.firstImage === "string",
+        );
+        return {
+          ...region,
+          reviewCount: rv.length,
+          avgStars: overallStars(rv),
+          coverImageUrl: (cover?.meta?.firstImage as string) ?? null,
+        };
+      });
+    },
+
+    async listPlacesByRegion(regionId, kind) {
+      return places.filter(
+        (p) => p.regionId === regionId && (kind === undefined || p.kind === kind),
+      );
     },
 
     async listPublicReviewsByRegion(regionId) {

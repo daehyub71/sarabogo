@@ -13,9 +13,13 @@ export interface RegionCardData {
   id: string;
   name: string;
   imageUrl: string | null;
-  /** 병원까지 차로 걸리는 분. 없으면 null. */
+  /** 수집된 병원 수(심평원). */
+  hospitalCount: number;
+  /** 수집된 약국 수(심평원). */
+  pharmacyCount: number;
+  /** 병원까지 차로 걸리는 분(Q4 산출식 확정 후). 없으면 null. */
   hospitalMinutes: number | null;
-  /** 평균 한달실비(만원). 없으면 null. */
+  /** 평균 한달실비(만원). 후기 없으면 null. */
   avgMonthlyCost: number | null;
   /** 공개(검수된) 후기 수. */
   reviewCount: number;
@@ -82,8 +86,14 @@ export function RegionCard({
           <div className="inline-flex items-center gap-1">
             <dt className="text-[var(--color-fg-muted)]">병원</dt>
             <dd className="tabular-nums">
-              {metric(region.hospitalMinutes, (n) => `차로 ${n}분`)}
+              {region.hospitalMinutes !== null
+                ? `차로 ${region.hospitalMinutes}분`
+                : `${region.hospitalCount}곳`}
             </dd>
+          </div>
+          <div className="inline-flex items-center gap-1">
+            <dt className="text-[var(--color-fg-muted)]">약국</dt>
+            <dd className="tabular-nums">{region.pharmacyCount}곳</dd>
           </div>
           <div className="inline-flex items-center gap-1">
             <dt className="text-[var(--color-fg-muted)]">한 달</dt>

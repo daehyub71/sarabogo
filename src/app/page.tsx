@@ -1,7 +1,27 @@
-import { FeedList } from "@/components/feed/FeedList";
+import { RegionExplorer } from "@/components/feed/RegionExplorer";
+import type { RegionCardData } from "@/components/RegionCard";
+import { summaryToCard } from "@/lib/region-card";
 import { DEMO_REGIONS } from "@/lib/fixtures/demo-regions";
 
-export default function HomePage() {
+// 요청 시점에 실 DB를 읽는다(수집 데이터 반영). 정적 캐시하지 않는다.
+export const dynamic = "force-dynamic";
+
+/** 실 DB에서 지역 요약을 읽어 카드 데이터로. env 없으면 데모로 폴백(배포 초기 안전장치). */
+async function loadRegions(): Promise<RegionCardData[]> {
+  try {
+    const { getDb } = await import("@/lib/db");
+    const summaries = await getDb().listRegionSummaries();
+    if (summaries.length === 0) return DEMO_REGIONS;
+    return summaries.map(summaryToCard);
+  } catch {
+    // Supabase 환경변수 미설정 등 → 데모 데이터로 화면을 채운다.
+    return DEMO_REGIONS;
+  }
+}
+
+export default async function HomePage() {
+  const regions = await loadRegions();
+
   return (
     <main className="mx-auto w-full max-w-[var(--feed-max-width)] px-4 py-6">
       <header className="mb-6">
@@ -13,8 +33,7 @@ export default function HomePage() {
         </p>
       </header>
 
-      {/* Phase 1에서 큰 버튼 3종(바다 근처 / 병원 가까운 곳 / 저예산) + 실데이터로 교체 */}
-      <FeedList regions={DEMO_REGIONS} />
+      <RegionExplorer regions={regions} />
     </main>
   );
 }

@@ -8,8 +8,11 @@
 import type {
   Course,
   NewReview,
+  Place,
+  PlaceKind,
   Profile,
   Region,
+  RegionSummary,
   Review,
 } from "@/types/domain";
 
@@ -33,6 +36,12 @@ export interface DbPort {
   // ── 지역 ────────────────────────────────
   listRegions(): Promise<Region[]>;
   getRegion(id: string): Promise<Region | null>;
+  /** 카드 피드용 지역 요약(집계 + 대표 이미지). */
+  listRegionSummaries(): Promise<RegionSummary[]>;
+
+  // ── 장소 (수집된 캐시) ──────────────────
+  /** 지역의 장소 목록. kind로 필터 가능(병원·약국·관광지 등). */
+  listPlacesByRegion(regionId: string, kind?: PlaceKind): Promise<Place[]>;
 
   // ── 후기 ────────────────────────────────
   /**

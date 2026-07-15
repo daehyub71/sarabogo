@@ -9,6 +9,8 @@ function makeRegion(i: number, over: Partial<RegionCardData> = {}): RegionCardDa
     id: `r-${i}`,
     name: `지역 ${i}`,
     imageUrl: null,
+    hospitalCount: 100,
+    pharmacyCount: 49,
     hospitalMinutes: 8,
     avgMonthlyCost: 82,
     reviewCount: 12,
