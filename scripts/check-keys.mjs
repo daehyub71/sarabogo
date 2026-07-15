@@ -95,6 +95,27 @@ async function checkAnthropic() {
   }
 }
 
+// ── Supabase (REST · anon/service_role 키) ───
+async function checkSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const svc = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !svc) return bad("Supabase", "URL/SERVICE_ROLE_KEY 미설정");
+  try {
+    // service_role로 regions 개수를 읽어 프로젝트 생존 + 키 유효 + 스키마 존재 확인
+    const res = await fetch(`${url}/rest/v1/regions?select=name`, {
+      headers: { apikey: svc, Authorization: `Bearer ${svc}` },
+    });
+    if (res.status === 401 || res.status === 403) {
+      return bad("Supabase", `${res.status} — 키 무효(회전됨?) 또는 권한 없음`);
+    }
+    if (!res.ok) return bad("Supabase", `HTTP ${res.status}`);
+    const rows = await res.json();
+    ok("Supabase", `regions ${rows.length}건 조회 · 키 유효`);
+  } catch (e) {
+    bad("Supabase", e.message.slice(0, 80));
+  }
+}
+
 // ── LLM (OpenAI · 대체 어댑터) ────────────────
 async function checkOpenAi() {
   if (!process.env.OPENAI_API_KEY) return bad("OpenAI (GPT)", "OPENAI_API_KEY 미설정");
@@ -117,6 +138,7 @@ await checkTour();
 await checkHira();
 await checkKakao();
 checkKakaoJs();
+await checkSupabase();
 await checkAnthropic();
 await checkOpenAi();
 
