@@ -113,7 +113,7 @@ npm run dev          # 로컬 개발 서버
 
 - 관광공사 API는 **`src/lib/kto.ts`만 경유**한다. 직접 `fetch` 금지 — 앱 식별자(`MobileApp=sarabogo`) 누락은 운영계정 승인 거부 사유.
 - ⚠️ **TourAPI에 `AppName` 파라미터는 없다.** 보내면 API가 거부한다(resultCode 10 · `INVALID_REQUEST_PARAMETER_ERROR(AppName)`). 앱 이름은 **`MobileApp`** 으로 전달한다. 2026-07-12 실호출로 확인.
-- 심평원은 `src/lib/hira.ts`, 지오코딩은 `src/lib/geocode.ts`를 경유한다.
+- 심평원은 `src/lib/hira.ts`, 지오코딩은 `src/lib/geocode/`(포트+어댑터)를 경유한다. **병원·약국은 심평원이 좌표를 직접 주므로 지오코딩 불필요** — 지오코딩은 좌표 없는 주소(A층 숙소 등)에만.
 - 외부 API 키는 서버(Route Handler / Edge Function)에서만 사용한다. 예외는 `KAKAO_JS_KEY`(도메인 제한 필수).
 - 화면은 외부 API를 실시간 호출하지 않는다. 배치가 `places`에 저장하고, 화면은 `lib/db`만 읽는다.
 - **DB·LLM은 포트+어댑터.** 벤더 SDK(`@supabase/*`, `@anthropic-ai/*`, `openai`)는 `lib/*/adapters/` 안에서만 import한다. 포트 시그니처에 벤더 타입을 노출하지 않는다.
