@@ -25,6 +25,31 @@ export type PlaceKind =
   | "mart"
   | "festival";
 
+/** 데이터 출처. */
+export type PlaceSource = "kto" | "hira" | "kakao";
+
+/**
+ * 장소 (관광공사/심평원 정제 캐시). 화면은 이 테이블만 읽고 외부 API를 직접 호출하지 않는다.
+ * 심평원 병원·약국은 좌표를 직접 제공하므로 지오코딩 없이 lat/lng가 채워진다.
+ */
+export interface Place {
+  id: string;
+  regionId: string;
+  contentId: string | null; // 관광공사 contentId
+  googlePlaceId: string | null; // 구글 place_id만 (정책상 나머지 저장 금지)
+  kind: PlaceKind;
+  name: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  /** 유형별 상세(진료과목·운영시간 등). 심평원 병원은 ykiho·종별을 담는다. */
+  meta: Record<string, unknown> | null;
+  source: PlaceSource;
+}
+
+/** 장소 적재 입력. id·updated_at은 서버 생성. */
+export type NewPlace = Omit<Place, "id">;
+
 export interface Region {
   id: string;
   areaCode: number;

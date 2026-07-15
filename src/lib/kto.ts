@@ -123,3 +123,77 @@ export async function ktoRequest<T = unknown>(
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+// ── 지역기반 관광정보 (수집 배치용) ─────────────────────────────
+
+/** areaBasedList2 정규화 아이템. mapx=경도, mapy=위도. */
+export interface KtoAreaItem {
+  contentId: string;
+  contentTypeId: string;
+  title: string;
+  addr: string | null;
+  lat: number | null; // mapy
+  lng: number | null; // mapx
+  firstImage: string | null;
+}
+
+interface KtoRawItem {
+  contentid?: string;
+  contenttypeid?: string;
+  title?: string;
+  addr1?: string;
+  mapx?: string;
+  mapy?: string;
+  firstimage?: string;
+}
+
+interface AreaBasedResponse {
+  response?: { body?: { items?: { item?: KtoRawItem | KtoRawItem[] } } };
+}
+
+/** items.item은 1건이면 객체, 여러 건이면 배열, 0건이면 빈 문자열로 온다. 항상 배열로 정규화. */
+function asArray<T>(v: T | T[] | "" | undefined): T[] {
+  if (!v) return [];
+  return Array.isArray(v) ? v : [v];
+}
+
+function toNum(v: string | undefined): number | null {
+  if (v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * 지역기반 관광정보를 조회한다 (areaBasedList2).
+ * @param contentTypeId 12=관광지, 32=숙박, 39=음식점, 15=행사 등
+ */
+export async function fetchAreaBasedList(
+  params: {
+    areaCode: number;
+    sigunguCode?: number;
+    contentTypeId: number;
+    numOfRows?: number;
+    pageNo?: number;
+  },
+  options: KtoRequestOptions,
+): Promise<KtoAreaItem[]> {
+  const req: Record<string, string> = {
+    areaCode: String(params.areaCode),
+    contentTypeId: String(params.contentTypeId),
+    numOfRows: String(params.numOfRows ?? 100),
+    pageNo: String(params.pageNo ?? 1),
+    arrange: "O", // 대표이미지 있는 것 우선
+  };
+  if (params.sigunguCode !== undefined) req.sigunguCode = String(params.sigunguCode);
+
+  const json = await ktoRequest<AreaBasedResponse>("areaBasedList2", req, options);
+  return asArray(json.response?.body?.items?.item).map((r) => ({
+    contentId: r.contentid ?? "",
+    contentTypeId: r.contenttypeid ?? "",
+    title: r.title ?? "",
+    addr: r.addr1 ?? null,
+    lat: toNum(r.mapy),
+    lng: toNum(r.mapx),
+    firstImage: r.firstimage || null,
+  }));
+}

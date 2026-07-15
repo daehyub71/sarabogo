@@ -89,14 +89,15 @@
 - [ ] **Q4** 병원 접근 시간 산출 방식 결정 (직선거리 근사로 시작)
 
 ### 수집 배치
-- [ ] `regions` 시드 데이터 입력 (Q2 결과 반영)
-- [ ] Edge Function: 관광공사 `areaBasedList2` / `searchStay2` → `places` 정제 저장
-- [ ] **[Red→Green]** `lib/geocode.ts` — 주소 → 좌표 변환 (실패 건 로깅)
-- [ ] **[Red→Green]** `lib/hira.ts` — 심평원 병원·약국 조회
-- [ ] Edge Function: 심평원 + 지오코딩 → `places` (kind = hospital|pharmacy)
-- [ ] 지오코딩 실패 건 수기 보정 목록 산출 (R3)
-- [ ] Cron 스케줄 등록 (야간 1회)
-- [ ] `regions.hospital_count` · `pharmacy_count` 집계 갱신 배치
+- [x] **[Red→Green]** `lib/hira.ts` — 심평원 병원·약국 조회 (Phase 0에서 완료, 좌표 직접 제공 확인)
+- [x] **[Red→Green]** `lib/geocode/` — 카카오+테이블 폴백 (Phase 0에서 완료)
+- [x] `lib/kto.ts` — `areaBasedList2` 지역기반 관광지·숙박 헬퍼 (실호출 확인)
+- [x] `lib/collect/` — hira/kto → Place 매퍼(테스트) + 오케스트레이션 + supabase writer
+- [x] **수집 배치 실행 (2026-07-15)** — 보령시 실데이터 216건 적재: 병원 100·약국 49·관광지 57·숙박 10. **전부 좌표 포함**(지오코딩 불필요)
+- [x] `regions.hospital_count` · `pharmacy_count` 집계 갱신 (보령 병원 100·약국 49 반영)
+- [ ] `regions` 시드 확대 (Q2 결과 반영) — 현재 보령시 1건 파일럿
+- [ ] Cron/Edge Function 이관 (현재 `scripts/collect.ts` 수동 실행) — 지역 확정 후
+- [ ] 지오코딩 실패 건 수기 보정 목록 산출 (R3) — A층 프로그램 숙소 주소용
 
 ### 화면
 - [ ] 랜딩 `page.tsx` — 큰 버튼 3종 (바다 근처 / 병원 가까운 곳 / 저예산)
