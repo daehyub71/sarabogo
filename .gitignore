@@ -43,4 +43,7 @@ next-env.d.ts
 *.swp
 
 # 백업 스냅샷 — docs/가 원본이므로 불필요
-assets/*.zip
+assets/*.*
+*.pptx
+blog/*.md
+docs/0*.md
