@@ -5,7 +5,7 @@
  * 같은 계약 테스트가 이 어댑터와 Supabase 어댑터 양쪽에서 통과해야 한다 (R12).
  * 벤더 SDK를 import하지 않으므로 인가·비즈니스 로직 테스트가 DB 없이 돌아간다.
  */
-import type { DbPort, ReviewPatch } from "@/lib/db/port";
+import type { DbPort, NewAdminAudit, ReviewPatch } from "@/lib/db/port";
 import type {
   Course,
   FamousMountain,
@@ -42,6 +42,7 @@ export function createMemoryDb(seed: Seed = {}): DbPort {
     (seed.profiles ?? []).map((p) => [p.id, p]),
   );
   const places: Place[] = seed.places ?? [];
+  const audits: NewAdminAudit[] = [];
   const mountains: FamousMountain[] = seed.mountains ?? [];
   const mountainsNear = (regionName: string) => {
     const token = countyMatchToken(regionName);
@@ -134,6 +135,10 @@ export function createMemoryDb(seed: Seed = {}): DbPort {
 
     async getProfile(id) {
       return profiles.get(id) ?? null;
+    },
+
+    async recordAdminAudit(entry: NewAdminAudit) {
+      audits.push(entry);
     },
   };
 }

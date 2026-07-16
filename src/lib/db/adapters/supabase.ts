@@ -8,7 +8,7 @@
  * 도메인으로 새지 않게 한다.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { DbPort, ReviewPatch } from "@/lib/db/port";
+import type { DbPort, NewAdminAudit, ReviewPatch } from "@/lib/db/port";
 import type {
   Course,
   FamousMountain,
@@ -347,6 +347,17 @@ export function createSupabaseDb(client: SupabaseClient): DbPort {
         role: p.role as Profile["role"],
         createdAt: p.created_at as string,
       };
+    },
+
+    async recordAdminAudit(entry: NewAdminAudit) {
+      const { error } = await client.from("admin_audit").insert({
+        actor_id: entry.actorId,
+        action: entry.action,
+        target_table: entry.targetTable,
+        target_id: entry.targetId,
+        payload: entry.payload,
+      });
+      if (error) throw error;
     },
   };
 }

@@ -65,4 +65,17 @@ export interface DbPort {
 
   // ── 프로필 ──────────────────────────────
   getProfile(id: string): Promise<Profile | null>;
+
+  // ── 관리자 감사 로그 ────────────────────
+  /** 관리자 콘솔의 모든 쓰기를 기록한다 (행위자·대상·판단 근거). */
+  recordAdminAudit(entry: NewAdminAudit): Promise<void>;
+}
+
+/** 감사 로그 입력. */
+export interface NewAdminAudit {
+  actorId: string;
+  action: string; // "review.create" 등
+  targetTable: string;
+  targetId: string | null;
+  payload: Record<string, unknown> | null; // origin·source_url·license 등 근거 스냅샷
 }
