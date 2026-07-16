@@ -16,6 +16,7 @@ export const DEMO_REGIONS: RegionCardData[] = [
     avgMonthlyCost: null, // 후기 없음 → "정보 없음"
     reviewCount: 0,
     avgStars: null,
+    mountainCount: 0,
     tags: ["바다", "조용함"],
   },
   {
@@ -28,6 +29,7 @@ export const DEMO_REGIONS: RegionCardData[] = [
     avgMonthlyCost: null,
     reviewCount: 0,
     avgStars: null,
+    mountainCount: 1,
     tags: ["평지", "한적함"],
   },
 ];

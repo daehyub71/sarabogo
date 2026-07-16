@@ -25,6 +25,8 @@ export interface RegionCardData {
   reviewCount: number;
   /** 종합 별점(1~5). 후기 없으면 null. */
   avgStars: number | null;
+  /** 근처 산림청 100대명산 수. */
+  mountainCount: number;
   tags: string[];
 }
 
@@ -101,6 +103,12 @@ export function RegionCard({
               {metric(region.avgMonthlyCost, (n) => `${n}만원`)}
             </dd>
           </div>
+          {region.mountainCount > 0 && (
+            <div className="inline-flex items-center gap-1">
+              <dt className="text-[var(--color-fg-muted)]">명산</dt>
+              <dd className="tabular-nums">{region.mountainCount}곳</dd>
+            </div>
+          )}
         </dl>
 
         {visibleTags.length > 0 && (

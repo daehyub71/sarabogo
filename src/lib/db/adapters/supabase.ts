@@ -11,6 +11,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { DbPort, ReviewPatch } from "@/lib/db/port";
 import type {
   Course,
+  FamousMountain,
   NewReview,
   Place,
   Profile,
@@ -19,6 +20,29 @@ import type {
   Review,
 } from "@/types/domain";
 import { overallStars } from "@/lib/reviews-aggregate";
+import { countyMatchToken } from "@/lib/region-match";
+
+interface MountainRow {
+  frtrl_id: string;
+  name: string;
+  province: string | null;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  altitude: number | null;
+}
+
+function toMountain(r: MountainRow): FamousMountain {
+  return {
+    id: r.frtrl_id,
+    name: r.name,
+    province: r.province,
+    address: r.address,
+    lat: r.lat,
+    lng: r.lng,
+    altitude: r.altitude,
+  };
+}
 
 // ── row → 도메인 매퍼 ───────────────────────────
 interface RegionRow {
@@ -182,7 +206,7 @@ export function createSupabaseDb(client: SupabaseClient): DbPort {
       if (error) throw error;
       const regions = (data as RegionRow[]).map(toRegion);
 
-      // 지역 수가 적으므로(≤20) 지역별로 후기 집계·대표 이미지를 조회한다.
+      // 지역 수가 적으므로(≤20) 지역별로 후기 집계·대표 이미지·명산 수를 조회한다.
       return Promise.all(
         regions.map(async (region): Promise<RegionSummary> => {
           const reviews = await this.listPublicReviewsByRegion(region.id);
@@ -196,14 +220,31 @@ export function createSupabaseDb(client: SupabaseClient): DbPort {
             .maybeSingle();
           const firstImage =
             (cover.data?.meta as Record<string, unknown> | null)?.firstImage ?? null;
+          const mtn = await client
+            .from("forest_mountains")
+            .select("*", { count: "exact", head: true })
+            .ilike("address", `%${countyMatchToken(region.name)}%`);
           return {
             ...region,
             reviewCount: reviews.length,
             avgStars: overallStars(reviews),
             coverImageUrl: typeof firstImage === "string" ? firstImage : null,
+            mountainCount: mtn.count ?? 0,
           };
         }),
       );
+    },
+
+    async listMountainsByRegion(regionId) {
+      const region = await this.getRegion(regionId);
+      if (!region) return [];
+      const { data, error } = await client
+        .from("forest_mountains")
+        .select("*")
+        .ilike("address", `%${countyMatchToken(region.name)}%`)
+        .order("altitude", { ascending: false });
+      if (error) throw error;
+      return (data as MountainRow[]).map(toMountain);
     },
 
     async listPlacesByRegion(regionId, kind) {

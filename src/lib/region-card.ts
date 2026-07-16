@@ -16,6 +16,7 @@ export function summaryToCard(s: RegionSummary): RegionCardData {
     avgMonthlyCost: s.avgMonthlyCost,
     reviewCount: s.reviewCount,
     avgStars: s.avgStars,
+    mountainCount: s.mountainCount,
     tags: [], // 태그 파생은 Phase 2 후기 데이터 이후
   };
 }

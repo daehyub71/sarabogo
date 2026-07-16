@@ -7,6 +7,7 @@
  */
 import type {
   Course,
+  FamousMountain,
   NewReview,
   Place,
   PlaceKind,
@@ -42,6 +43,10 @@ export interface DbPort {
   // ── 장소 (수집된 캐시) ──────────────────
   /** 지역의 장소 목록. kind로 필터 가능(병원·약국·관광지 등). */
   listPlacesByRegion(regionId: string, kind?: PlaceKind): Promise<Place[]>;
+
+  // ── 산림청 100대명산 ────────────────────
+  /** 지역 근처(주소 매칭) 100대명산. 고도 높은 순. */
+  listMountainsByRegion(regionId: string): Promise<FamousMountain[]>;
 
   // ── 후기 ────────────────────────────────
   /**

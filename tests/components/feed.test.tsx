@@ -15,6 +15,7 @@ function makeRegion(i: number, over: Partial<RegionCardData> = {}): RegionCardDa
     avgMonthlyCost: 82,
     reviewCount: 12,
     avgStars: 4.3,
+    mountainCount: 2,
     tags: ["바다", "조용함"],
     ...over,
   };

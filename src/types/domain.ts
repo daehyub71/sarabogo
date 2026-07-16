@@ -74,6 +74,22 @@ export interface RegionSummary extends Region {
   avgStars: number | null;
   /** 대표 이미지 URL(관광지 첫 이미지). 없으면 null. */
   coverImageUrl: string | null;
+  /** 근처 산림청 100대명산 수. */
+  mountainCount: number;
+}
+
+/**
+ * 산림청 100대명산 (정부 공식 · 공공누리). 블랙야크 브랜드 리스트 아님.
+ * 좌표 직접 제공(지오코딩 불필요). 주소로 지역에 매칭한다.
+ */
+export interface FamousMountain {
+  id: string; // frtrlId
+  name: string;
+  province: string | null;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  altitude: number | null;
 }
 
 /**

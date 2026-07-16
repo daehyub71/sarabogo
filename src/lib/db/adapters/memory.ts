@@ -8,6 +8,7 @@
 import type { DbPort, ReviewPatch } from "@/lib/db/port";
 import type {
   Course,
+  FamousMountain,
   NewReview,
   Place,
   Profile,
@@ -16,6 +17,7 @@ import type {
   Review,
 } from "@/types/domain";
 import { overallStars } from "@/lib/reviews-aggregate";
+import { countyMatchToken } from "@/lib/region-match";
 
 interface Seed {
   regions?: Region[];
@@ -23,6 +25,7 @@ interface Seed {
   courses?: Course[];
   profiles?: Profile[];
   places?: Place[];
+  mountains?: FamousMountain[];
 }
 
 export function createMemoryDb(seed: Seed = {}): DbPort {
@@ -39,6 +42,13 @@ export function createMemoryDb(seed: Seed = {}): DbPort {
     (seed.profiles ?? []).map((p) => [p.id, p]),
   );
   const places: Place[] = seed.places ?? [];
+  const mountains: FamousMountain[] = seed.mountains ?? [];
+  const mountainsNear = (regionName: string) => {
+    const token = countyMatchToken(regionName);
+    return mountains
+      .filter((m) => (m.address ?? "").includes(token))
+      .sort((a, b) => (b.altitude ?? 0) - (a.altitude ?? 0));
+  };
 
   let counter = reviews.size;
   const nextId = () => `mem-review-${++counter}`;
@@ -70,6 +80,7 @@ export function createMemoryDb(seed: Seed = {}): DbPort {
           reviewCount: rv.length,
           avgStars: overallStars(rv),
           coverImageUrl: (cover?.meta?.firstImage as string) ?? null,
+          mountainCount: mountainsNear(region.name).length,
         };
       });
     },
@@ -78,6 +89,11 @@ export function createMemoryDb(seed: Seed = {}): DbPort {
       return places.filter(
         (p) => p.regionId === regionId && (kind === undefined || p.kind === kind),
       );
+    },
+
+    async listMountainsByRegion(regionId) {
+      const region = regions.get(regionId);
+      return region ? mountainsNear(region.name) : [];
     },
 
     async listPublicReviewsByRegion(regionId) {
