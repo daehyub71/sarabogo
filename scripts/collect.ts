@@ -23,25 +23,28 @@ if (!serviceKey || !url || !svc) {
 const client = createClient(url, svc, { auth: { persistSession: false } });
 const writer = createSupabaseWriter(client);
 
-// regions에서 대상 지역 id를 찾아 코드와 결합한다.
+// regions 테이블에서 수집에 필요한 코드가 모두 채워진 지역을 읽는다.
 async function resolveTargets(): Promise<RegionTarget[]> {
-  const { data, error } = await client.from("regions").select("id, name").eq("area_code", 34);
+  const { data, error } = await client
+    .from("regions")
+    .select("id, name, area_code, sigungu_code, hira_sido_cd, hira_sggu_cd")
+    .not("sigungu_code", "is", null)
+    .not("hira_sido_cd", "is", null)
+    .not("hira_sggu_cd", "is", null)
+    .order("name");
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error("수집 대상 지역이 없다. supabase/seed_regions.sql을 먼저 적용하라.");
+  }
 
-  // Phase 1 파일럿: 보령시. KTO 시군구=5, 심평원 시도=340000·시군구=340400 (실호출 확인).
-  const boryeong = (data ?? []).find((r) => (r.name as string).includes("보령"));
-  if (!boryeong) throw new Error("regions에 보령시 시드가 없다. 마이그레이션/시드를 먼저 적용하라.");
-
-  return [
-    {
-      regionId: boryeong.id as string,
-      name: boryeong.name as string,
-      ktoAreaCode: 34,
-      ktoSigunguCode: 5,
-      hiraSidoCd: "340000",
-      hiraSgguCd: "340400",
-    },
-  ];
+  return data.map((r) => ({
+    regionId: r.id as string,
+    name: r.name as string,
+    ktoAreaCode: r.area_code as number,
+    ktoSigunguCode: r.sigungu_code as number,
+    hiraSidoCd: r.hira_sido_cd as string,
+    hiraSgguCd: r.hira_sggu_cd as string,
+  }));
 }
 
 async function main() {
